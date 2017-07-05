@@ -1,16 +1,46 @@
 ---
 title: "Análisis de las condiciones del océano frente a Perú durante mi primer año de vida"
-author: "Su nombre"
+author: "Nicolás Rovegno Arrese"
 output: html_document
 ---
 
+```{r packages, echo=FALSE, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ncdf4)
+library(fields)
+#install.packages("devtools")
+#devtools::install_github("roliveros-ramos/kali")
+library(kali)
+```
+
 ## Introducción
+Se ha hecho el análisis de las condiciones del océano frente a Perú durante el año 1991 como parte del examen final del curso de Programación Científica del Programa de Maestría de Ciencias del Mar 2016-I.
 
 ## Materiales y métodos
+Se utilizaron bases de datos (fuentes) de las siguientes variables...
+
+- Promedio TSM 1959-2005
+- ATSM año de estudio
 
 ## Resultados y discusión
 
+```{r check, echo = FALSE, fig.width=4, fig.height=4, fig.cap="ATSM durante el año 1991"}
+library(ncdf4)
+library(fields)
+library(kali)
+nc = nc_open("datos/sst.nc4")
+sst = ncvar_get(nc, "to")
+lat = ncvar_get(nc, "latitude")
+lon = ncvar_get(nc, "longitude") - 360
+sst_mean=apply(sst[,,1:552], MARGIN = c(1,2), FUN = mean, na.rm = TRUE)
+sst_1991=apply(sst[,,384:396], MARGIN = c(1,2), FUN = mean, na.rm = TRUE)
+anom_sst=sst_mean-sst_1991
+image.map(lon, lat, anom_sst)
+```
+
 ## Conclusiones
+Año con tendencia fría
+
 
 ## Referencias
 
