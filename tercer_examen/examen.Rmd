@@ -55,7 +55,6 @@ lphy_var2=lphy_var*10^6 #micromolar
 #variable tphy - total plancton
 tphy_var=lphy_var+sphy_var
 tphy2=tphy_var*10^6 #micromolar
-
 ```
 
 ```{r datos_mensuales, echo = FALSE}
@@ -81,9 +80,6 @@ for (mes in 1:12){
 }
 ```
 
-
-
-
 ## Introducción
 El presente reporte constituye la evaluación final del curso de Programación Científica del Programa de Maestría en Ciencias del Mar 2016-I. Como objetivo de dicho reporte se plantea un análisis de las condiciones oceanográficas frente al Perú durante el año 1991.
 
@@ -97,7 +93,6 @@ __Tabla 1. Índices del Fenómeno El Niño durante 1991__ _(valores en negritas 
 | ICEN | -0.65 | -0.47 | -0.39 | -0.21 | -0.08 | 0.21    | 0.30    | 0.35    | 0.39    | **0.48** | **0.61** | **0.55** |
 
 En ese contexto se ha hecho un análisis de las bases de datos puestas a disposición en distintas escalas espacio-temporales, haciendo la acotación de que el que suscribe desconoce la fuente de dicha información. Además se ha seguido la metodología descrita para hallar el ICEN utilizando los datos proporcionados.
-
 
 ## Materiales y métodos
 
@@ -117,7 +112,6 @@ Los datos de pH se encontraban en unidades de mol/m^3^, para lo cual se convirti
 
 La caracterización de fitoplancton pequeño y grande es de caracter cualitativo, para el análisis ambas variables fueron sumadas resultando en un valor total de fitoplancton. Además las unidades fueron transformadas por practicidad para el análisis.
 
-
 ###Metodología 
 Para el análisis se utilizó R con los paquetes básicos, en adición de los siguientes paquetes: ncdf4, fields, kali (y las dependencias que los mismos requieren).
 
@@ -133,8 +127,7 @@ Además se calculó el valor del ICEN con los valores de TSM provistos siguiendo
 
 #función anomalías
 anho_1991=c(385:396)
-Anom_1991 = function (var_nc, var_nom, var_lab, num){
-var_mean=apply(var_nc[,,], MARGIN = c(1,2), FUN = mean, na.rm = TRUE)
+Anom_1991 = function (var_nc, var_nom, var_lab, num){var_mean=apply(var_nc[,,], MARGIN = c(1,2), FUN = mean, na.rm = TRUE)
 var_1991=apply(var_nc[,,anho_1991], MARGIN = c(1,2), FUN = mean, na.rm = TRUE)
 anom_var=var_mean-var_1991
 image.map(sst_lon, sst_lat, anom_var, sub = paste("Figura", num, "Anomalía de", var_nom, "durante 1991", sep =" "), legend.lab = var_lab, legend.shrink = 0.7, legend.width = 0.7)
@@ -150,16 +143,11 @@ El rango para caracterizar el ICEN como neutro se encuentra entre las anomalías
 
 ```{r graficos_sst_mensual, echo = FALSE, fig.width=5, fig.height=5, fig.align="center"}
 par(oma=c(0,0,0,2))
-plot(1:12, apply(sst_var[,,anho_1991],
-    MARGIN = 3, FUN = mean, na.rm = TRUE), type = "l", 
-    lwd=2, col="green", ylim = c(15,30), ylab = "TSM (°C)",
-    xlab="", sub ="Figura 2. TSM (max, mean & min) durante el año 1991", axes = FALSE, las = 1)
+plot(1:12, apply(sst_var[,,anho_1991],MARGIN = 3, FUN = mean, na.rm = TRUE), type = "l", lwd=2, col="green", ylim = c(15,30), ylab = "TSM (°C)", xlab="", sub ="Figura 2. TSM (max, mean & min) durante el año 1991", axes = FALSE, las = 1)
 axis(2, at = axTicks(2), las = 1)
 axis(1, at = axTicks(1), labels = month.abb[seq(from = 2, to = 12, by = 2)])
-lines(1:12, apply(sst_var[,,anho_1991], MARGIN = 3, FUN = min, na.rm = TRUE),
-      col="blue")
-lines(1:12, apply(sst_var[,,anho_1991], MARGIN = 3, FUN = max, na.rm = TRUE),
-      col="red")
+lines(1:12, apply(sst_var[,,anho_1991], MARGIN = 3, FUN = min, na.rm = TRUE), col="blue")
+lines(1:12, apply(sst_var[,,anho_1991], MARGIN = 3, FUN = max, na.rm = TRUE), col="red")
 lines(1:12, mean_month, col="black", lty = 2)
 lines(1:12, max_month, col="black", lty = 2)
 lines(1:12, min_month, col="black", lty = 2)
@@ -189,7 +177,8 @@ En la __Tabla 2__ se muestran los valores del ONI y el ICEN, y además el valor 
 #####__Tabla 2. Índices del Niño__
 
 ```{r, ninho, echo=FALSE}
-##recalc_ICEN
+
+#recalc_ICEN
 
 mean_1991_1_2=apply(sst_var[4:14,11:21,384:397], MARGIN = 3, FUN = min, na.rm = TRUE) #mean 1+2 solo 1991
 MM_1991=as.numeric(na.omit(filter(mean_1991_1_2, rep(1/3,3)))) #Media movil 3 meses 1991
@@ -197,11 +186,9 @@ MM_1991=as.numeric(na.omit(filter(mean_1991_1_2, rep(1/3,3)))) #Media movil 3 me
 mean_1_2=apply(sst_var[4:14,11:21,], MARGIN = 3, FUN = min, na.rm = TRUE) #mean 1+2 
 MM_1_2=as.numeric(filter(mean_1_2, rep(1/3,3))) #media movil 3 meses
 
-
 meanMM_month_1_2 = vector() #monthly mean of 3-months moving mean
 for (mes in 1:12){
-  meanMM_month_1_2[[mes]]=mean(MM_1_2[seq(from = mes, to = 552, by = 12)],
-                             na.rm=TRUE)
+meanMM_month_1_2[[mes]]=mean(MM_1_2[seq(from = mes, to = 552, by = 12)], na.rm=TRUE)
 }
 
 ICEN_2=round(meanMM_month_1_2-MM_1991, digits=2)
