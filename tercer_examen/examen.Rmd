@@ -35,7 +35,8 @@ nc_ph = nc_open("datos/ph.nc4")
 ph_var = ncvar_get(nc_ph, names(nc_ph$var))
 ph_lat = ncvar_get(nc_ph, "latitude")
 ph_lon = ncvar_get(nc_ph, "longitude") - 360
-log_ph=abs(log10(ph_var))
+ph_var_molar=ph_var/1000 #a mol/L
+log_ph=abs(log10(ph_var_molar)) 
 
 #variables sphy
 nc_sphy = nc_open("datos/sphy.nc4") 
@@ -57,15 +58,72 @@ tphy2=tphy_var*10^6 #micromolar
 
 ```
 
+```{r datos_mensuales, echo = FALSE}
+#promedio meses
+mean_month = vector()
+for (mes in 1:12){
+  mean_month[[mes]]=(mean(apply(sst_var[,,seq(from = mes, to = 552, by = 12)],
+  MARGIN = 3, FUN = mean, na.rm = TRUE)))
+}
+
+#max meses
+max_month = vector()
+for (mes in 1:12){
+  max_month[[mes]]=(mean(apply(sst_var[,,seq(from = mes, to = 552, by = 12)],
+                                MARGIN = 3, FUN = max, na.rm = TRUE)))
+}
+
+#min meses
+min_month = vector()
+for (mes in 1:12){
+  min_month[[mes]]=(mean(apply(sst_var[,,seq(from = mes, to = 552, by = 12)],
+                               MARGIN = 3, FUN = min, na.rm = TRUE)))
+}
+```
+
+
+
 
 ## Introducción
-El presente reporte constituye la evaluación final del curso de Programación Científica del Programa de Maestría en Ciencias del Mar 2016-I. Como objetivo de dicho reporte se ha realizado el análisis de las condiciones oceanográficas frente al Perú durante el año 1991. Se ha pla
- 
-## Materiales y métodos
-Se utilizaron bases de datos (fuentes) de las siguientes variables...
+El presente reporte constituye la evaluación final del curso de Programación Científica del Programa de Maestría en Ciencias del Mar 2016-I. Como objetivo de dicho reporte se plantea un análisis de las condiciones oceanográficas frente al Perú durante el año 1991.
 
-- Promedio TSM 1959-2005
-- ATSM año de estudio
+El año analizado correspondió a condiciones cálidas hacia el segundo semestre de acuerdo al Índice Oceánico del Niño (ONI), mientras que según el Índice Costero El Niño (ICEN) se presentaron condiciones cálidas hacia el último trimestre del año (__Tabla 1__). Para el cálculo del ONI se utilizan los datos de ERSST en su versión 4 y se toman múltiples climatologías base centradas para periodos de 30 años, los cuales se actualizan cada 5 años (NOAA-CPC, 2017). En el caso del ICEN, su cálculo utiliza los datos de ERSST en su versión 3b y toma una climatología base para el periódo de 1980-2010 (ENFEN, 2012; Takahasi *et al.*, 2014).
+
+__Tabla 1. Índices del Fenómeno El Niño durante 1991__ _(valores en negritas corresponden a condiciones cálidas)_
+
+|      |  DJF  |  JFM  |  FMA  |  MAM  |  AMJ  |   MJJ   |   JJA   |   JAS   |   ASO   |    SON   |    OND   |    NDJ   |
+|------|:-----:|:-----:|:-----:|:-----:|:-----:|:-------:|:-------:|:-------:|:-------:|:--------:|:--------:|:--------:|
+| ONI  |  0.4  |  0.3  |  0.2  |  0.2  |  0.4  | **0.6** | **0.7** | **0.7** | **0.7** |  **0.8** |  **1.2** |  **1.4** |
+| ICEN | -0.65 | -0.47 | -0.39 | -0.21 | -0.08 | 0.21    | 0.30    | 0.35    | 0.39    | **0.48** | **0.61** | **0.55** |
+
+En ese contexto se ha hecho un análisis de las bases de datos puestas a disposición en distintas escalas espacio-temporales, haciendo la acotación que el que suscribe desconoce la fuente de dicha información. Además se ha seguido la metodología descrita para hallar el ICEN utilizando los datos proporcionados.
+
+
+## Materiales y métodos
+
+###Datos proporcionados
+A continuación se describen las bases de datos provistas:
+
+- Temperatura potencial superficial del mar (°C)
+- Salinidad superficial del mar (psu)
+- pH (mol/m^3^)
+- Producción vertical integrada de fitoplancton pequeño (mol C/m^2^ s)
+- Producción vertical integrada de fitoplancton grande (mol C/m^2^ s)
+
+Todas las variables tienen como dimensiones de Latitud: **6.5 °N - 20 °S** y Longitud: **69.5 °W - 93.5 °W**. Los datos corresponden al periodo **1950-1996** con resolución temporal mensual.
+
+###Tratamiento de los datos
+Los datos de pH se encontraban en unidades de mol/m^3^, para lo cual se convirtió a mol/L. Luego para hallar el valor de pH se calculó el logaritmo de la concentración molar (mol/L), sin embargo los valores hallados resultan fuera del rango de valores hallados comunmente. Por ello esta variable no fue utilizada posteriormente (Libes, 2009).
+
+La caracterización de fitoplancton pequeño y grande es de caracter cualitativo, para el análisis ambas variables fueron sumadas resultando en un valor total de fitoplancton. Además las unidades fueron transformadas por practicidad para el análisis.
+
+
+###Metodología
+Para el análisis se utilizó R con los paquetes básicos, en adición de los siguientes paquetes: ncdf4, fields, kali (y las dependencias que los mismos requieren).
+
+Se analizaron las anomalías de las TSM, SSM y fitoplancton ocurridas durante el año 1991 respecto al promedio del periodo 1950-1996.
+
+Además se calculó el valor del ICEN con los valores de TSM provistos siguiendo la metodología dispuesta por el Comité ENFEN. Se calcularon los promedios mensuales para la región El Niño 1+2 (90°W -80°W, 10°S-0) para todo el periodo y luego se calculó la anomalía mensual de la media corrida de 3 meses de 1991 frente a a la media corrida del promedio mensual de todo el periodo.
 
 ## Resultados y discusión
 
@@ -73,32 +131,98 @@ Se utilizaron bases de datos (fuentes) de las siguientes variables...
 
 #función anomalías
 anho_1991=c(385:396)
-Anom_1991 = function (var_nc, var_nom, var_lab){
+Anom_1991 = function (var_nc, var_nom, var_lab, num){
 var_mean=apply(var_nc[,,], MARGIN = c(1,2), FUN = mean, na.rm = TRUE)
 var_1991=apply(var_nc[,,anho_1991], MARGIN = c(1,2), FUN = mean, na.rm = TRUE)
 anom_var=var_mean-var_1991
-image.map(sst_lon, sst_lat, anom_var, main = paste("Anomalía de", var_nom,
-"durante 1991", sep =" "), legend.lab = var_lab)
+image.map(sst_lon, sst_lat, anom_var, sub = paste("Figura", num, "Anomalía de", var_nom, "durante 1991", sep =" "), legend.lab = var_lab, legend.shrink = 0.7, legend.width = 0.7)
 }
 ```
 
-```{r graficos, echo = FALSE, fig.width=4, fig.height=4}
-Anom_1991(sst_var, "temperatura", "ATSM")
-Anom_1991(sss_var, "salinidad", "ASSS")
-
-
+```{r graficos_sst, echo = FALSE, fig.width=5, fig.height=5, fig.align="center"}
+par(oma=c(0,0,0,2))
+Anom_1991(sst_var, "temperatura", "ATSM", "1.")
 ```
 
-De acuerdo al ONI (3.4) el año 1991 fue categorizado como El Niño, sin embargo de acuerdo al ICEN (1+2) fue un año neutro
+El rango para caracterizar el ICEN como neutro se encuentra entre las anomalías de -1 y 0.4 °C. En la __Figura 1__ se puede ver que el rango de las anomalías anuales se encuentran dentro de ese rango. Las mayores anomalías negativas se encuentran frente al norte de Perú y Ecuador, y se extienden hasta Galápagos.
+
+```{r graficos_sst_mensual, echo = FALSE, fig.width=5, fig.height=5, fig.align="center"}
+par(oma=c(0,0,0,2))
+plot(1:12, apply(sst_var[,,anho_1991],
+    MARGIN = 3, FUN = mean, na.rm = TRUE), type = "l", 
+    lwd=2, col="green", ylim = c(15,30), ylab = "TSM (°C)",
+    xlab="", sub ="Figura 2. TSM (max, mean & min) durante el año 1991", axes = FALSE, las = 1)
+axis(2, at = axTicks(2), las = 1)
+axis(1, at = axTicks(1), labels = month.abb[seq(from = 2, to = 12, by = 2)])
+lines(1:12, apply(sst_var[,,anho_1991], MARGIN = 3, FUN = min, na.rm = TRUE),
+      col="blue")
+lines(1:12, apply(sst_var[,,anho_1991], MARGIN = 3, FUN = max, na.rm = TRUE),
+      col="red")
+lines(1:12, mean_month, col="black", lty = 2)
+lines(1:12, max_month, col="black", lty = 2)
+lines(1:12, min_month, col="black", lty = 2)
+box()
+```
+
+En la __Figura 2__ se puede ver la variación estacional del promedio de la TSM (*verde*), del valor máximo (*rojo*) y del valor mínimo(*azul*). Las líneas punteadas corresponden al promedio de todo el periodo, para los valores máximos, promedios y mínimos respectivamente. Durante el año 1991 las variaciones estacionales siguieron la tendencia histórica.
+  
+```{r graficos_sss, echo = FALSE, fig.width=5, fig.height=5, fig.align="center"}
+par(oma=c(0,0,0,2))
+Anom_1991(sss_var, "salinidad", "ASSM", "3.")
+```
+
+En la __Figura 3__ se observan las anomalías de la salinidad superficial del mar. A lo largo de 1991 para el área de evaluación los valores de anomalías fueron pequeños, lo cual podría indicar un comportamiento regular de las masas de agua.  
+
+```{r graficos_fito, echo = FALSE, fig.width=5, fig.height=5, fig.align="center"}
+par(oma=c(0,0,0,2))
+Anom_1991(tphy2, "fitoplancton", "fitoplancton (µmol C/m2 s)", "4.")
+```
+
 
 ```{r, ninho, echo=FALSE}
+##recalc_ICEN
+
+mean_1991_1_2=apply(sst_var[4:14,11:21,384:397], MARGIN = 3, FUN = min, na.rm = TRUE) #mean 1+2 solo 1991
+MM_1991=as.numeric(na.omit(filter(mean_1991_1_2, rep(1/3,3)))) #Media movil 3 meses 1991
+
+mean_1_2=apply(sst_var[4:14,11:21,], MARGIN = 3, FUN = min, na.rm = TRUE) #mean 1+2 
+MM_1_2=as.numeric(filter(mean_1_2, rep(1/3,3))) #media movil 3 meses
+
+
+meanMM_month_1_2 = vector() #monthly mean of 3-months moving mean
+for (mes in 1:12){
+  meanMM_month_1_2[[mes]]=mean(MM_1_2[seq(from = mes, to = 552, by = 12)],
+                             na.rm=TRUE)
+}
+
+ICEN_2=round(meanMM_month_1_2-MM_1991, digits=2)
+
 ONI=c(0.4, 0.3, 0.2, 0.2, 0.4, 0.6, 0.7, 0.7, 0.7, 0.8, 1.2, 1.4)
 ICEN=c(-0.65, -0.47, -0.39, -0.21, -0.08, 0.21, 0.30, 0.35, 0.39, 0.48, 0.61, 0.55)
 months=(month.abb)
-Tabla=data.frame(months, ONI, ICEN) #Fuente IGP, NOAA
+Tabla=data.frame(months, ONI, ICEN, ICEN_2) #Fuente IGP, NOAA
 Tabla
+
+
 ```
 
+```{r grafico_mensual, echo = FALSE, fig.height=5, fig.width=5, fig.align="center"}
+par(oma=c(0,0,1,2))
+plot(1:12, apply(sst_var[,,anho_1991],
+    MARGIN = 3, FUN = mean, na.rm = TRUE), type = "l", 
+    lwd=2, col="green", ylim = c(15,30), ylab = "TSM (°C)",
+    xlab="", main ="TSM (max, mean & min) durante el año 1991", axes = FALSE, las = 1)
+axis(2, at = axTicks(2), las = 1)
+axis(1, at = axTicks(1), labels = month.abb[seq(from = 2, to = 12, by = 2)])
+lines(1:12, apply(sst_var[,,anho_1991], MARGIN = 3, FUN = min, na.rm = TRUE),
+      col="blue")
+lines(1:12, apply(sst_var[,,anho_1991], MARGIN = 3, FUN = max, na.rm = TRUE),
+      col="red")
+lines(1:12, mean_month, col="black", lty = 2)
+lines(1:12, max_month, col="black", lty = 2)
+lines(1:12, min_month, col="black", lty = 2)
+box()
+```
 
 
 
