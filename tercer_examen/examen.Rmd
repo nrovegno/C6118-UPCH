@@ -87,16 +87,16 @@ for (mes in 1:12){
 ## Introducción
 El presente reporte constituye la evaluación final del curso de Programación Científica del Programa de Maestría en Ciencias del Mar 2016-I. Como objetivo de dicho reporte se plantea un análisis de las condiciones oceanográficas frente al Perú durante el año 1991.
 
-El año analizado correspondió a condiciones cálidas hacia el segundo semestre de acuerdo al Índice Oceánico del Niño (ONI), mientras que según el Índice Costero El Niño (ICEN) se presentaron condiciones cálidas hacia el último trimestre del año (__Tabla 1__). Para el cálculo del ONI se utilizan los datos de ERSST en su versión 4 y se toman múltiples climatologías base centradas para periodos de 30 años, los cuales se actualizan cada 5 años (NOAA-CPC, 2017). En el caso del ICEN, su cálculo utiliza los datos de ERSST en su versión 3b y toma una climatología base para el periódo de 1980-2010 (ENFEN, 2012; Takahasi *et al.*, 2014).
+El año analizado correspondió a condiciones cálidas hacia el segundo semestre, de acuerdo al Índice Oceánico del Niño (ONI), mientras que según el Índice Costero El Niño (ICEN) se presentaron condiciones cálidas hacia el último trimestre del año (__Tabla 1__). Para el cálculo del ONI se utilizan los datos de ERSST en su versión 4 y se toman múltiples climatologías base centradas para periodos de 30 años, los cuales se actualizan cada 5 años (NOAA-CPC, 2017). En el caso del ICEN, su cálculo utiliza los datos de ERSST en su versión 3b y toma una climatología base para el periódo de 1980-2010 (ENFEN, 2012; Takahasi *et al.*, 2014).
 
-__Tabla 1. Índices del Fenómeno El Niño durante 1991__ _(valores en negritas corresponden a condiciones cálidas)_
+__Tabla 1. Índices del Fenómeno El Niño durante 1991__ _(valores en negritas corresponden a condiciones cálidas según índice)_
 
 |      |  DJF  |  JFM  |  FMA  |  MAM  |  AMJ  |   MJJ   |   JJA   |   JAS   |   ASO   |    SON   |    OND   |    NDJ   |
 |------|:-----:|:-----:|:-----:|:-----:|:-----:|:-------:|:-------:|:-------:|:-------:|:--------:|:--------:|:--------:|
 | ONI  |  0.4  |  0.3  |  0.2  |  0.2  |  0.4  | **0.6** | **0.7** | **0.7** | **0.7** |  **0.8** |  **1.2** |  **1.4** |
 | ICEN | -0.65 | -0.47 | -0.39 | -0.21 | -0.08 | 0.21    | 0.30    | 0.35    | 0.39    | **0.48** | **0.61** | **0.55** |
 
-En ese contexto se ha hecho un análisis de las bases de datos puestas a disposición en distintas escalas espacio-temporales, haciendo la acotación que el que suscribe desconoce la fuente de dicha información. Además se ha seguido la metodología descrita para hallar el ICEN utilizando los datos proporcionados.
+En ese contexto se ha hecho un análisis de las bases de datos puestas a disposición en distintas escalas espacio-temporales, haciendo la acotación de que el que suscribe desconoce la fuente de dicha información. Además se ha seguido la metodología descrita para hallar el ICEN utilizando los datos proporcionados.
 
 
 ## Materiales y métodos
@@ -118,14 +118,16 @@ Los datos de pH se encontraban en unidades de mol/m^3^, para lo cual se convirti
 La caracterización de fitoplancton pequeño y grande es de caracter cualitativo, para el análisis ambas variables fueron sumadas resultando en un valor total de fitoplancton. Además las unidades fueron transformadas por practicidad para el análisis.
 
 
-###Metodología
+###Metodología 
 Para el análisis se utilizó R con los paquetes básicos, en adición de los siguientes paquetes: ncdf4, fields, kali (y las dependencias que los mismos requieren).
 
 Se analizaron las anomalías de las TSM, SSM y fitoplancton ocurridas durante el año 1991 respecto al promedio del periodo 1950-1996.
 
-Además se calculó el valor del ICEN con los valores de TSM provistos siguiendo la metodología dispuesta por el Comité ENFEN. Se calcularon los promedios mensuales para la región El Niño 1+2 (90°W -80°W, 10°S-0) para todo el periodo y luego se calculó la anomalía mensual de la media corrida de 3 meses de 1991 frente a a la media corrida del promedio mensual de todo el periodo.
+Además se calculó el valor del ICEN con los valores de TSM provistos siguiendo la metodología dispuesta por el Comité ENFEN. Se calcularon los promedios mensuales para la región El Niño 1+2 (90°W -80°W, 10°S-0) para todo el periodo y luego se calculó la anomalía mensual de la media corrida de 3 meses de 1991 frente a a la media corrida del promedio mensual de todo el periodo. Por limitaciones de las dimensiones de los datos de TSM se realizó el cálculo para 90.5°W-80.5° y 10.5°S - 0.5°S.
 
 ## Resultados y discusión
+
+#### __Condiciones espacio-temporales durante 1991__
 
 ```{r funciones, echo = FALSE}
 
@@ -178,6 +180,13 @@ par(oma=c(0,0,0,2))
 Anom_1991(tphy2, "fitoplancton", "fitoplancton (µmol C/m2 s)", "4.")
 ```
 
+De la misma manera el fitoplancton mostró una concentración regular a gran escala (__Figura 4__), sin embargo frentre a la zona central de Perú a alrededor de 360 mn de distancia de costa se logra ver una zona de extensión considerable en la cual a lo largo del año se mantuvieron anomalías de entre 0.05 y 0.1 micromoles de C/m^2^ s.
+
+#### __Re-calculando el ICEN__
+
+En la __Tabla 2__ se muestran los valores del ONI y el ICEN, y además el valor hallado del ICEN (*ICEN_2*). Se ve que la reproducción del ICEN no guarda correspondencia con los valores del cálculo original del ICEN. Se plantean 3 motivos por estas diferencias. Los datos utilizados originalmente para el ICEN podrían tener una resolución distinta a los que se utilizó para el re-calculo, de manera que se puede haber "ganado" o "perdido" datos. Por las limitaciones de los datos se tuvo que tomar una región El Niño 1+2 diferente, la cual estuvo 0.5 grados desviada hacia el Sur y Oeste. Se trató de compensar datos más cálidos hacia el Oeste con datos más templados hacia el Sur, sin embargo esta diferenciación de la metodología puede haber modificado el resultado final. Finalmente al haber utilizado un distinto periodo promedio base las anomalías que resultan van a ser completamente distintas, considerando además que hay periodos de distinta variabilidad e intensidad que pueden generar ruido en los datos. Para evitar esto el ONI considera actualizar su periodo promedio base cada 5 años.
+
+#####__Tabla 2. Índices del Niño__
 
 ```{r, ninho, echo=FALSE}
 ##recalc_ICEN
@@ -202,33 +211,22 @@ ICEN=c(-0.65, -0.47, -0.39, -0.21, -0.08, 0.21, 0.30, 0.35, 0.39, 0.48, 0.61, 0.
 months=(month.abb)
 Tabla=data.frame(months, ONI, ICEN, ICEN_2) #Fuente IGP, NOAA
 Tabla
-
-
 ```
-
-```{r grafico_mensual, echo = FALSE, fig.height=5, fig.width=5, fig.align="center"}
-par(oma=c(0,0,1,2))
-plot(1:12, apply(sst_var[,,anho_1991],
-    MARGIN = 3, FUN = mean, na.rm = TRUE), type = "l", 
-    lwd=2, col="green", ylim = c(15,30), ylab = "TSM (°C)",
-    xlab="", main ="TSM (max, mean & min) durante el año 1991", axes = FALSE, las = 1)
-axis(2, at = axTicks(2), las = 1)
-axis(1, at = axTicks(1), labels = month.abb[seq(from = 2, to = 12, by = 2)])
-lines(1:12, apply(sst_var[,,anho_1991], MARGIN = 3, FUN = min, na.rm = TRUE),
-      col="blue")
-lines(1:12, apply(sst_var[,,anho_1991], MARGIN = 3, FUN = max, na.rm = TRUE),
-      col="red")
-lines(1:12, mean_month, col="black", lty = 2)
-lines(1:12, max_month, col="black", lty = 2)
-lines(1:12, min_month, col="black", lty = 2)
-box()
-```
-
-
 
 ## Conclusiones
 Año con tendencia fría, sss igual
 
+- Durante el año 1991 la salinidad mostró la menor variabilidad.
+- Durante el año 1991 la temperatura mostró cierta variabilidad, sin embargo esta igual estaría caracterizada dentro de lo esperado (*condiciones neutrales*)
+- Durante el año 1991 la concentración de fitoplancton tuvo valores dentro lo regular a nivel, sin embargo hubo un foco de mayor productividad hacia 360 mn de distancia de costa de Lima.
+- Los valores re-calculados del ICEN no correspondieron con los valores originales, debido a 3 factores identificados (o una mezcla de ellos).
 
 ## Referencias
 
+ENFEN. (2012). _Definición operacional de los eventos El Niño y La Niña y sus magnitudes en la costa del Perú_. Nota Técnica
+
+Libes, S. M. (2009). *Introduction to marine biogeochemistry.* Estados Unidos, Academic Press.
+
+NOAA-CPC. (2017). Cold & Warm Episodes by Season. Recuperado de:http://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ensoyears.shtml
+
+Takahashi, K., K. Mosquera y J. Reupo. (2014). El Índice Costero El Niño (ICEN): historia y actualización. *Boletín Técnico "Generación de modelos climáticos para el pronóstico de la ocurrencia del Fenómeno El Niño"*. Instituto Geofísico del Perú, Febrero, 1, 2, 8-9.
